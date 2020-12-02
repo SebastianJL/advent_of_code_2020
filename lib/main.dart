@@ -1,30 +1,24 @@
 import 'dart:io';
 
 void main() {
-  var numbers_file = File('lib/numbers.txt');
-  var numbers =
-      numbers_file.readAsLinesSync().map((e) => int.parse(e)).toList();
-  var number1;
-  var number2;
-  var number3;
+  var password_file = File('lib/passwords.txt');
+  var n_valid_passwords = password_file
+      .readAsLinesSync()
+      .map((e) => e.split(RegExp('[- ]')))
+      .map((e) => is_valid(
+          int.parse(e[0]), int.parse(e[1]), e[2].substring(0, 1), e[3]))
+      .reduce((sum, e) => sum + e);
 
-  outer:
-  for (var i=0; i<numbers.length; i++) {
-    number1 = numbers[i];
-    for (var j=i+1; j<numbers.length; j++) {
-      number2 = numbers[j];
-      for (var k=i+1; k<numbers.length; k++) {
-        number3 = numbers[k];
-        if (number1 + number2 + number3 == 2020) {
-          break outer;
-        }
-      }
-    }
+  print(n_valid_passwords);
+}
+
+int is_valid(int min, int max, String character, String password) {
+  var counter = 0;
+  var valid = true;
+  for (var c in password.split('')) {
+    if (c == character) counter++;
   }
-
-  print(number1);
-  print(number2);
-  print(number3);
-  print(number1 + number2 + number3);
-  print(number1 * number2 * number3);
+  if (counter < min) valid = false;
+  if (counter > max) valid = false;
+  return valid ? 1 : 0;
 }
