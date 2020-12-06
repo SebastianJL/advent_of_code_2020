@@ -1,35 +1,31 @@
 import 'dart:io';
 
 void main() {
-  var treeMap = File('lib/tree_map.txt')
-      .readAsLinesSync()
-      .map((e) => e.split(''))
-      .toList();
+  var passports = File('lib/passports.txt')
+      .readAsStringSync()
+      .split('\n\n')
+      .toList()
+      .map((e) => toMap(e));
 
-  var total = 1;
-  for (var slope in [
-    [1, 1],
-    [1, 3],
-    [1, 5],
-    [1, 7],
-    [2, 1]
-  ]) {
-    var nTrees = countTrees(treeMap, slope[0], slope[1]);
-    print(nTrees);
-    total *= nTrees;
-  }
-  print(total);
+  var nValidPassports =
+      passports.where((passport) => validatePassport(passport)).length;
+
+  print(nValidPassports);
 }
 
-int countTrees(List<List<String>> treeMap, int down, int right) {
-  var nRows = treeMap.length;
-  var nColumns = treeMap[0].length;
-  var nTrees = 0;
+Map<String, String> toMap(String passportString) {
+  var passportEntries = passportString
+      .split(RegExp(r'[ \n]'))
+      .map((e) => e.split(':'))
+      .map((e) => MapEntry(e[0], e[1]));
+  return Map.fromEntries(passportEntries);
+}
 
-  var c = 0;
-  for (var r = 0; r < nRows; r += down) {
-    if (treeMap[r][c] == '#') nTrees++;
-    c = (c + right) % nColumns;
-  }
-  return nTrees;
+bool validatePassport(Map<String, String> passport) {
+  var keys = ['ecl', 'pid', 'eyr', 'hcl', 'byr', 'iyr', 'hgt'];
+  // Ignored key 'cid'
+
+  if (passport.length < keys.length) return false;
+
+  return keys.every((key) => passport.containsKey(key));
 }
