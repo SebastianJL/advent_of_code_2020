@@ -1,14 +1,16 @@
 import 'dart:io';
-import 'dart:math';
 
 void main() {
   var boardingPasses = File('lib/boarding_passes.txt').readAsLinesSync();
 
-  var maxSeatId = boardingPasses
-      .map((e) => decodeSeatId(e))
-      .reduce((value, element) => max(value, element));
+  var seatIDs = boardingPasses.map((e) => decodeSeatId(e)).toList();
+  seatIDs.sort();
 
-  print(maxSeatId);
+  for (var i=0; i<seatIDs.length-1; i++) {
+    if (seatIDs[i+1] - seatIDs[i] == 2) {
+      print(seatIDs[i]+1);
+    };
+  }
 }
 
 int decodeSeatId(String seatString) {
