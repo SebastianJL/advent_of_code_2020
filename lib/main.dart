@@ -1,12 +1,28 @@
 import 'dart:io';
 
 void main() {
-  var nAnswers = File('lib/answer_sheet.txt')
+  var answersByGroupAndMember = File('lib/answer_sheet.txt')
       .readAsStringSync()
       .split('\n\n')
-      .map((e) => e.replaceAll('\n', '').split(''))
-      .map((e) => Set<String>.from(e))
-      .fold(0, (int previousValue, element) => previousValue + element.length);
+      .map((e) => e.split('\n'));
 
-  print(nAnswers);
+  var correctAnswers = 0;
+  for (var group in answersByGroupAndMember) {
+    var allAnswers = Set.from(group.join().split(''));
+
+    for (var answer in allAnswers) {
+      var answeredCorrectlyByEveryone = true;
+      for (var member in group) {
+        if (!member.split('').contains(answer)) {
+          answeredCorrectlyByEveryone = false;
+          break;
+        }
+      }
+      if (answeredCorrectlyByEveryone) {
+        correctAnswers += 1;
+      }
+    }
+  }
+
+  print(correctAnswers);
 }
