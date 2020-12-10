@@ -1,28 +1,34 @@
 import 'dart:io';
 
 void main() {
-  var answersByGroupAndMember = File('lib/answer_sheet.txt')
-      .readAsStringSync()
-      .split('\n\n')
-      .map((e) => e.split('\n'));
+  var colorRules = File('lib/color_rules.txt').readAsLinesSync().map((line) =>
+      line
+          .split(RegExp(' bags?( contain [0-9] |[,.]( [0-9] )?)'))
+          .where((element) => element.isNotEmpty)
+          .toList());
 
-  var correctAnswers = 0;
-  for (var group in answersByGroupAndMember) {
-    var allAnswers = Set.from(group.join().split(''));
-
-    for (var answer in allAnswers) {
-      var answeredCorrectlyByEveryone = true;
-      for (var member in group) {
-        if (!member.split('').contains(answer)) {
-          answeredCorrectlyByEveryone = false;
-          break;
-        }
-      }
-      if (answeredCorrectlyByEveryone) {
-        correctAnswers += 1;
-      }
+  var colorRelations = <String, Set<String>>{};
+  for (var colorRule in colorRules) {
+    for (var color in colorRule.sublist(1)) {
+      colorRelations.putIfAbsent(color, () => <String>{}).add(colorRule[0]);
     }
   }
 
-  print(correctAnswers);
+  var containingBags = findContainingBags('shiny gold', colorRelations);
+
+  print(containingBags);
+  print(containingBags.length);
+}
+
+
+Set<String> findContainingBags(
+    String containedColor, Map<String, Set<String>> colorRelations) {
+  var containingBags = <String>{};
+
+  for (var color in colorRelations[containedColor] ?? {}) {
+    containingBags.add(color);
+    containingBags.addAll(findContainingBags(color, colorRelations));
+  }
+
+  return containingBags;
 }
