@@ -7,28 +7,43 @@ void main() {
           .where((element) => element.isNotEmpty)
           .toList());
 
-  var colorRelations = <String, Set<String>>{};
-  for (var colorRule in colorRules) {
-    for (var color in colorRule.sublist(1)) {
-      colorRelations.putIfAbsent(color, () => <String>{}).add(colorRule[0]);
-    }
-  }
+  print(colorRules);
 
-  var containingBags = findContainingBags('shiny gold', colorRelations);
+//   var colorRelations = <String, Set<String>>{};
+//   for (var colorRule in colorRules) {
+//     colorRelations
+//         .putIfAbsent(colorRule[0], () => <String>{})
+//         .addAll(colorRule.sublist(1));
+//   }
+//
+//   var containingBags = findNumberOfContainedBags('shiny gold', colorRelations);
+//
+//   print(containingBags);
+//   print(containingBags.length);
+}
+//
+// Set<String> findNumberOfContainedBags(
+//     String containedColor, Map<String, Set<String>> colorRelations) {
+//   var nContainedBags = 0;
+//
+//   for (var color in colorRelations[containedColor] ?? {}) {
+//     containingBags.add(color);
+//     containingBags.addAll(findNumberOfContainedBags(color, colorRelations));
+//   }
+//
+//   return containingBags;
+// }
 
-  print(containingBags);
-  print(containingBags.length);
+class BagRule {
+  String color;
+  List<BagQuantity> containedBags;
+
+  BagRule(this.color, this.containedBags);
 }
 
+class BagQuantity {
+  String color;
+  int quantity;
 
-Set<String> findContainingBags(
-    String containedColor, Map<String, Set<String>> colorRelations) {
-  var containingBags = <String>{};
-
-  for (var color in colorRelations[containedColor] ?? {}) {
-    containingBags.add(color);
-    containingBags.addAll(findContainingBags(color, colorRelations));
-  }
-
-  return containingBags;
+  BagQuantity(this.color, this.quantity);
 }
