@@ -9,43 +9,55 @@ void main() {
           .toList())
       .toList();
 
-  var colorRelations = <String, List<BagQuantity>>{};
+  var bagRelations = <String, List<BagQuantity>>{};
   for (var colorRule in colorRules) {
-    colorRelations
+    bagRelations
         .putIfAbsent(colorRule[0], () => <BagQuantity>[])
         .addAll(colorRule.sublist(1).map((e) => BagQuantity.fromString(e)));
   }
 
-  print(colorRelations);
+  print(bagRelations);
 
-//
-//   var containingBags = findNumberOfContainedBags('shiny gold', colorRelations);
-//
-//   print(containingBags);
-//   print(containingBags.length);
+  var nContainedBags = findNumberOfContainedBags('shiny gold', bagRelations);
+
+  print(nContainedBags);
 }
-//
-// Set<String> findNumberOfContainedBags(
-//     String containedColor, Map<String, Set<String>> colorRelations) {
-//   var nContainedBags = 0;
-//
-//   for (var color in colorRelations[containedColor] ?? {}) {
-//     containingBags.add(color);
-//     containingBags.addAll(findNumberOfContainedBags(color, colorRelations));
-//   }
-//
-//   return containingBags;
-// }
+
+int findNumberOfContainedBags(
+    String color, Map<String, List<BagQuantity>> bagRelations) {
+  var nContainedBags = 0;
+  var bagQuantities = bagRelations[color];
+
+  if (bagQuantities == null) {
+    throw (ArgumentError(
+        'Color $color is not contained in bagRelations $bagRelations'));
+  }
+
+  for (var bagQuantity in bagQuantities) {
+    nContainedBags += bagQuantity.quantity + bagQuantity.quantity *
+        findNumberOfContainedBags(bagQuantity.color, bagRelations);
+  }
+  return nContainedBags;
+}
 
 class BagQuantity {
-  late String color;
-  late int quantity;
+  final String color;
+  final int quantity;
 
   BagQuantity(this.color, this.quantity);
 
-  BagQuantity.fromString(String bagQuantity) {
-    var a = bagQuantity.split(' ');
-    quantity = int.parse(a[0]);
-    color = a[1];
+  /// [bagQuantity] must be a string consisting of "integer color name".
+  factory BagQuantity.fromString(String bagQuantity) {
+    var match = RegExp(r'\d+').firstMatch(bagQuantity);
+    if (match == null) {
+      throw (ArgumentError.value(bagQuantity));
+    }
+
+    var quantity = int.parse(match.group(0).toString());
+    var color = bagQuantity.substring(match.end + 1);
+    return BagQuantity(color, quantity);
   }
+
+  @override
+  String toString() => '$quantity $color';
 }
