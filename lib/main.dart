@@ -1,63 +1,73 @@
 import 'dart:io';
 
 void main() {
-  var colorRules = File('lib/color_rules.txt')
-      .readAsLinesSync()
-      .map((line) => line
-          .split(RegExp(' bags?( contain |, |.)|no other bags.'))
-          .where((element) => element.isNotEmpty)
-          .toList())
-      .toList();
+  var program = File('lib/bytecode.txt').readAsStringSync();
 
-  var bagRelations = <String, List<BagQuantity>>{};
-  for (var colorRule in colorRules) {
-    bagRelations
-        .putIfAbsent(colorRule[0], () => <BagQuantity>[])
-        .addAll(colorRule.sublist(1).map((e) => BagQuantity.fromString(e)));
-  }
+  var c = Computer(program);
 
-  print(bagRelations);
-
-  var nContainedBags = findNumberOfContainedBags('shiny gold', bagRelations);
-
-  print(nContainedBags);
+  var accState = c.runUntilLoop();
+  print(accState);
 }
 
-int findNumberOfContainedBags(
-    String color, Map<String, List<BagQuantity>> bagRelations) {
-  var nContainedBags = 0;
-  var bagQuantities = bagRelations[color];
+class Computer {
+  final String bytecode;
+  late final List<Instruction> _instructions;
+  int _pointer = 0;
+  int _accumulator = 0;
+  final _visitedPointers = <int>{};
 
-  if (bagQuantities == null) {
-    throw (ArgumentError(
-        'Color $color is not contained in bagRelations $bagRelations'));
-  }
-
-  for (var bagQuantity in bagQuantities) {
-    nContainedBags += bagQuantity.quantity + bagQuantity.quantity *
-        findNumberOfContainedBags(bagQuantity.color, bagRelations);
-  }
-  return nContainedBags;
-}
-
-class BagQuantity {
-  final String color;
-  final int quantity;
-
-  BagQuantity(this.color, this.quantity);
-
-  /// [bagQuantity] must be a string consisting of "integer color name".
-  factory BagQuantity.fromString(String bagQuantity) {
-    var match = RegExp(r'\d+').firstMatch(bagQuantity);
-    if (match == null) {
-      throw (ArgumentError.value(bagQuantity));
+  Computer(this.bytecode) {
+    try {
+      _instructions = _initializeInstructions();
+    } on ArgumentError {
+      rethrow;
     }
-
-    var quantity = int.parse(match.group(0).toString());
-    var color = bagQuantity.substring(match.end + 1);
-    return BagQuantity(color, quantity);
   }
 
-  @override
-  String toString() => '$quantity $color';
+  List<Instruction> _initializeInstructions() {
+    return bytecode
+        .split('\n')
+        .map((instruction) => Instruction(
+            name: instruction.substring(0, 3),
+            argument: int.parse(instruction.substring(4))))
+        .toList();
+  }
+
+  /// Runs the [bytecode] and returns the state of the internal [_accumulator].
+  /// The program halts as soon as it hits the same line of the bytecode twice.
+  int runUntilLoop() {
+    while (true) {
+      if (_visitedPointers.contains(_pointer)) {
+        break;
+      }
+      _visitedPointers.add(_pointer);
+      var instruction = _instructions[_pointer];
+      _execute(instruction);
+    }
+    return _accumulator;
+  }
+
+  void _execute(Instruction instruction) {
+    switch (instruction.name) {
+      case 'nop':
+        _pointer += 1;
+        break;
+      case 'acc':
+        _accumulator += instruction.argument;
+        _pointer += 1;
+        break;
+      case 'jmp':
+        _pointer += instruction.argument;
+        break;
+      default:
+        throw (ArgumentError.value(instruction.name));
+    }
+  }
+}
+
+class Instruction {
+  final String name;
+  final int argument;
+
+  Instruction({required this.name, required this.argument});
 }
