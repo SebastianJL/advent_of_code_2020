@@ -2,11 +2,20 @@ import 'dart:io';
 
 void main() {
   var program = File('lib/bytecode.txt').readAsStringSync();
+  int? result;
 
-  var c = Computer(program);
+  var jmpOrNop = RegExp(r'jmp|nop');
+  var matches = jmpOrNop.allMatches(program);
 
-  var accState = c.runUntilLoop();
-  print(accState);
+  for (var match in matches) {
+    var replacementInstruction = match.group(0) == 'jmp' ? 'nop' : 'jmp';
+    var newProgram =
+        program.replaceRange(match.start, match.end, replacementInstruction);
+    result = Computer(newProgram).run();
+    if (result != null) break;
+  }
+
+  print(result);
 }
 
 class Computer {
@@ -17,11 +26,7 @@ class Computer {
   final _visitedPointers = <int>{};
 
   Computer(this.bytecode) {
-    try {
-      _instructions = _initializeInstructions();
-    } on ArgumentError {
-      rethrow;
-    }
+    _instructions = _initializeInstructions();
   }
 
   List<Instruction> _initializeInstructions() {
@@ -34,14 +39,25 @@ class Computer {
   }
 
   /// Runs the [bytecode] and returns the state of the internal [_accumulator].
-  /// The program halts as soon as it hits the same line of the bytecode twice.
-  int runUntilLoop() {
+  ///
+  /// The program halts as soon as it tries to read an instruction at a line of
+  /// the bytecode that doesn't exist. Usually after advancing from the last
+  /// line.
+  /// If the computer hits the same line of the bytecode twice it halts and
+  /// returns `null`.
+  int? run() {
+    Instruction instruction;
+
     while (true) {
       if (_visitedPointers.contains(_pointer)) {
-        break;
+        return null;
       }
       _visitedPointers.add(_pointer);
-      var instruction = _instructions[_pointer];
+      try {
+        instruction = _instructions[_pointer];
+      } on RangeError {
+        break;
+      }
       _execute(instruction);
     }
     return _accumulator;
@@ -70,4 +86,9 @@ class Instruction {
   final int argument;
 
   Instruction({required this.name, required this.argument});
+
+  @override
+  String toString() {
+    return '$name $argument';
+  }
 }
