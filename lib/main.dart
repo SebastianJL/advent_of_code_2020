@@ -1,28 +1,18 @@
-import 'dart:collection';
 import 'dart:io';
 
-import 'dart:math';
-
 void main() {
-  var data =
-      File('lib/data.xmas').readAsLinesSync().map((e) => int.parse(e)).toList();
-  var n = 400480901;
-  var sum = 0;
-  var contiguousRange = Queue<int>();
+  var jolts =
+      File('lib/jolts.txt').readAsLinesSync().map((e) => int.parse(e)).toList();
 
-  for (var number in data) {
-    sum += number;
-    contiguousRange.addLast(number);
+  jolts.sort();
+  jolts = [0, ...jolts, jolts[jolts.length-1] + 3];
+  var joltDifferences = <int>[];
 
-    while (sum > n) {
-      sum -= contiguousRange.removeFirst();
-    }
-    if (sum == n) {
-      break;
-    }
+  for (var i = 0; i < jolts.length - 1; i++) {
+    joltDifferences.add(jolts[i + 1] - jolts[i]);
   }
-  print(sum);
-  var minimum = contiguousRange.reduce(min);
-  var maximum = contiguousRange.reduce(max);
-  print(minimum + maximum);
+
+  var difference3 = joltDifferences.where((element) => element == 3).length;
+  var difference1 = joltDifferences.where((element) => element == 1).length;
+  print(difference1*difference3);
 }
