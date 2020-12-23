@@ -1,3 +1,3 @@
-bool xor(bool a, bool b) {
-  return (a || b) && (a != b);
-}
+bool xor(bool a, bool b) => (a || b) && (a != b);
+
+int add(a, b) => a + b;

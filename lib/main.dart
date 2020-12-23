@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:advent_of_code_2020/src/operators.dart';
+
 void main() {
   var chargers = File('lib/chargers.txt')
       .readAsLinesSync()
@@ -11,19 +13,15 @@ void main() {
   print(chargerCombinations(chargers));
 }
 
-int chargerCombinations(Iterable<int> chargers) {
-  var combinations = 0;
-  var first = chargers.first;
-  var possibleNext =
-      chargers.skip(1).takeWhile((value) => first >= value - 3).length;
+int chargerCombinations(List<int> chargers) {
+  var combinations = List.filled(chargers.length, 0);
+  combinations.last = 1;
 
-  if (chargers.length == 1) {
-    return 1;
+  for (var i = chargers.length - 2; i >= 0; i--) {
+    var first = chargers[i];
+    var possibleNext =
+        chargers.skip(i).takeWhile((value) => first >= value - 3).length;
+    combinations[i] = combinations.skip(i).take(possibleNext).reduce(add);
   }
-
-  for (var i = 0; i < possibleNext; i++) {
-    combinations += chargerCombinations(chargers.skip(i+1));
-  }
-
-  return combinations;
+  return combinations[0];
 }
