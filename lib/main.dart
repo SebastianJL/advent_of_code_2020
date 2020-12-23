@@ -1,18 +1,29 @@
 import 'dart:io';
 
 void main() {
-  var jolts =
-      File('lib/jolts.txt').readAsLinesSync().map((e) => int.parse(e)).toList();
+  var chargers = File('lib/chargers.txt')
+      .readAsLinesSync()
+      .map((e) => int.parse(e))
+      .toList();
 
-  jolts.sort();
-  jolts = [0, ...jolts, jolts[jolts.length-1] + 3];
-  var joltDifferences = <int>[];
+  chargers.sort();
+  chargers = [0, ...chargers, chargers[chargers.length - 1] + 3];
+  print(chargerCombinations(chargers));
+}
 
-  for (var i = 0; i < jolts.length - 1; i++) {
-    joltDifferences.add(jolts[i + 1] - jolts[i]);
+int chargerCombinations(Iterable<int> chargers) {
+  var combinations = 0;
+  var first = chargers.first;
+  var possibleNext =
+      chargers.skip(1).takeWhile((value) => first >= value - 3).length;
+
+  if (chargers.length == 1) {
+    return 1;
   }
 
-  var difference3 = joltDifferences.where((element) => element == 3).length;
-  var difference1 = joltDifferences.where((element) => element == 1).length;
-  print(difference1*difference3);
+  for (var i = 0; i < possibleNext; i++) {
+    combinations += chargerCombinations(chargers.skip(i+1));
+  }
+
+  return combinations;
 }
