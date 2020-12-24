@@ -1,86 +1,69 @@
-// @dart=2.9
 import 'dart:io';
 
-import 'package:advent_of_code_2020/src/operators.dart';
-import 'package:collection/collection.dart';
-
-const noSeat = '.';
-const free = 'L';
-const occupied = '#';
-
 void main() {
-  var seatLayout = File('lib/seat_layout.txt')
+  var directions = File('lib/directions.txt')
       .readAsLinesSync()
-      .map((e) => e.split(''))
+      .map((e) => [e[0], int.parse(e.substring(1))])
       .toList();
-  var seatLayoutCopy =
-      List.filled(seatLayout.length, List.filled(seatLayout[0].length, ''));
-  Function deepEquals = const DeepCollectionEquality().equals;
 
-  do {
-    deepCopy(seatLayout, seatLayoutCopy);
+  print(directions);
 
-    // matrixPrint(seatLayout);
-    // print('---------------------------');
+  var heading = 'E';
+  var position = Position();
 
-    for (var row = 0; row < seatLayout.length; row++) {
-      for (var col = 0; col < seatLayout[0].length; col++) {
-        if (seatLayoutCopy[row][col] == noSeat) continue;
+  for (var instruction in directions) {
+    // print(position);
+    // print(heading);
+    // print('');
 
-        var n = countOccupiedVisibleSeats(row, col, seatLayoutCopy);
-
-        if (n == 0) seatLayout[row][col] = occupied;
-        if (n >= 5) seatLayout[row][col] = free;
-      }
+    switch (instruction[0]) {
+      case 'F':
+        position.add(heading, instruction[1] as int);
+        break;
+      case 'R':
+        heading = changeDirection(heading, -(instruction[1] as int));
+        break;
+      case 'L':
+        heading = changeDirection(heading, instruction[1] as int);
+        break;
+      default:
+        position.add(instruction[0] as String, instruction[1] as int);
     }
-  } while (!deepEquals(seatLayout, seatLayoutCopy));
-
-  // matrixPrint(seatLayoutCopy);
-  print(countOccupiedSeats(seatLayout));
-}
-
-int countOccupiedVisibleSeats(int row, int col, List<List<String>> seatLayout) {
-  var seatsInAllDirections = [
-    look(row, col, -1, -1, seatLayout),
-    look(row, col, -1, 0, seatLayout),
-    look(row, col, -1, 1, seatLayout),
-    look(row, col, 0, 1, seatLayout),
-    look(row, col, 1, 1, seatLayout),
-    look(row, col, 1, 0, seatLayout),
-    look(row, col, 1, -1, seatLayout),
-    look(row, col, 0, -1, seatLayout),
-  ];
-  return seatsInAllDirections.reduce(add);
-}
-
-int countOccupiedSeats(List<List<String>> seatLayout) {
-  return seatLayout
-      .expand((element) => element)
-      .where((element) => element == occupied)
-      .length;
-}
-
-void deepCopy(List<List<String>> origin, List<List<String>> target) {
-  for (var i = 0; i < origin.length; i++) {
-    target[i] = List.from(origin[i]);
   }
+  print(position);
+  print(heading);
+  print(position.x.abs() + position.y.abs());
 }
 
-int look(int row, int column, int vertical, int horizontal,
-    List<List<String>> seatLayout) {
-  var seen = noSeat;
-  var i = row;
-  var j = column;
+String changeDirection(String direction, int degrees) {
+  var directions = ['E', 'N', 'W', 'S'];
+  var index = directions.indexOf(direction);
+  return directions[(index + degrees ~/ 90) % 4];
+}
 
-  do {
-    i += vertical;
-    j += horizontal;
-    try {
-      seen = seatLayout[i][j];
-    } on RangeError {
-      break;
+class Position {
+  var x = 0;
+  var y = 0;
+
+  Position add(String direction, int distance) {
+    switch (direction) {
+      case 'E':
+        x += distance;
+        break;
+      case 'N':
+        y += distance;
+        break;
+      case 'W':
+        x -= distance;
+        break;
+      case 'S':
+        y -= distance;
     }
-  } while (seen == noSeat);
+    return this;
+  }
 
-  return seen == occupied ? 1 : 0;
+  @override
+  String toString() {
+    return '($x,$y)';
+  }
 }
