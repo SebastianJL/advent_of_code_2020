@@ -6,64 +6,77 @@ void main() {
       .map((e) => [e[0], int.parse(e.substring(1))])
       .toList();
 
-  print(directions);
-
-  var heading = 'E';
-  var position = Position();
+  var position = Coordinate2D.origin();
+  var waypoint = Coordinate2D(10, 1);
 
   for (var instruction in directions) {
-    // print(position);
-    // print(heading);
-    // print('');
 
-    switch (instruction[0]) {
+    var opcode = instruction[0] as String;
+    var arg = instruction[1] as int;
+    switch (opcode) {
       case 'F':
-        position.add(heading, instruction[1] as int);
+        position.addPosition(waypoint, arg);
         break;
       case 'R':
-        heading = changeDirection(heading, -(instruction[1] as int));
+        waypoint.rotate(-arg);
         break;
       case 'L':
-        heading = changeDirection(heading, instruction[1] as int);
+        waypoint.rotate(arg);
         break;
       default:
-        position.add(instruction[0] as String, instruction[1] as int);
+        waypoint.add(opcode, arg);
     }
   }
   print(position);
-  print(heading);
-  print(position.x.abs() + position.y.abs());
+  print(waypoint);
+  print(position.east.abs() + position.north.abs());
 }
 
-String changeDirection(String direction, int degrees) {
-  var directions = ['E', 'N', 'W', 'S'];
-  var index = directions.indexOf(direction);
-  return directions[(index + degrees ~/ 90) % 4];
-}
+class Coordinate2D {
+  int east;
+  int north;
 
-class Position {
-  var x = 0;
-  var y = 0;
+  Coordinate2D(this.east, this.north);
 
-  Position add(String direction, int distance) {
+  Coordinate2D.origin()
+      : east = 0,
+        north = 0;
+
+  /// Rotate in anti-clockwise direction by [degrees].
+  /// Only integer multiples of 90 are possible.
+  void rotate(int degrees) {
+    var sign = degrees.sign;
+    for (var i = 0; i < (degrees.abs() ~/ 90); i++) {
+      var tmp = north;
+      north = sign * east;
+      east = -sign * tmp;
+    }
+  }
+
+  Coordinate2D addPosition(Coordinate2D other, [int factor = 1]) {
+    east += factor * other.east;
+    north += factor * other.north;
+    return this;
+  }
+
+  void add(String direction, int distance) {
     switch (direction) {
       case 'E':
-        x += distance;
+        east += distance;
         break;
       case 'N':
-        y += distance;
+        north += distance;
         break;
       case 'W':
-        x -= distance;
+        east -= distance;
         break;
       case 'S':
-        y -= distance;
+        north -= distance;
     }
-    return this;
   }
 
   @override
   String toString() {
-    return '($x,$y)';
+    return '(east:$east, north:$north)';
   }
 }
