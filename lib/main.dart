@@ -1,82 +1,22 @@
 import 'dart:io';
+import 'dart:math';
 
 void main() {
-  var directions = File('lib/directions.txt')
-      .readAsLinesSync()
-      .map((e) => [e[0], int.parse(e.substring(1))])
+  var notes = File('lib/notes.txt').readAsLinesSync();
+
+  var arrivalTime = int.parse(notes[0]);
+  var departureIntervals = notes[1]
+      .split(',')
+      .where((e) => e != 'x')
+      .map((e) => int.parse(e))
       .toList();
 
-  var position = Coordinate2D.origin();
-  var waypoint = Coordinate2D(10, 1);
-
-  for (var instruction in directions) {
-
-    var opcode = instruction[0] as String;
-    var arg = instruction[1] as int;
-    switch (opcode) {
-      case 'F':
-        position.addPosition(waypoint, arg);
-        break;
-      case 'R':
-        waypoint.rotate(-arg);
-        break;
-      case 'L':
-        waypoint.rotate(arg);
-        break;
-      default:
-        waypoint.add(opcode, arg);
-    }
-  }
-  print(position);
-  print(waypoint);
-  print(position.east.abs() + position.north.abs());
-}
-
-class Coordinate2D {
-  int east;
-  int north;
-
-  Coordinate2D(this.east, this.north);
-
-  Coordinate2D.origin()
-      : east = 0,
-        north = 0;
-
-  /// Rotate in anti-clockwise direction by [degrees].
-  /// Only integer multiples of 90 are possible.
-  void rotate(int degrees) {
-    var sign = degrees.sign;
-    for (var i = 0; i < (degrees.abs() ~/ 90); i++) {
-      var tmp = north;
-      north = sign * east;
-      east = -sign * tmp;
-    }
-  }
-
-  Coordinate2D addPosition(Coordinate2D other, [int factor = 1]) {
-    east += factor * other.east;
-    north += factor * other.north;
-    return this;
-  }
-
-  void add(String direction, int distance) {
-    switch (direction) {
-      case 'E':
-        east += distance;
-        break;
-      case 'N':
-        north += distance;
-        break;
-      case 'W':
-        east -= distance;
-        break;
-      case 'S':
-        north -= distance;
-    }
-  }
-
-  @override
-  String toString() {
-    return '(east:$east, north:$north)';
-  }
+  print(arrivalTime);
+  print(departureIntervals);
+  var nextDepartureTimes = departureIntervals
+      .map((interval) => (arrivalTime / interval).ceil() * interval)
+      .toList();
+  var soonestDeparture = nextDepartureTimes.reduce(min);
+  var busId = departureIntervals[nextDepartureTimes.indexOf(soonestDeparture)];
+  print((soonestDeparture - arrivalTime) * busId);
 }
