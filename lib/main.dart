@@ -1,22 +1,40 @@
+import 'dart:collection';
 import 'dart:io';
-import 'dart:math';
 
 void main() {
-  var notes = File('lib/notes.txt').readAsLinesSync();
-
-  var arrivalTime = int.parse(notes[0]);
-  var departureIntervals = notes[1]
+  var notes = File('lib/notes.txt')
+      .readAsLinesSync()[0]
       .split(',')
-      .where((e) => e != 'x')
-      .map((e) => int.parse(e))
-      .toList();
+      .map((e) => int.tryParse(e))
+      .toList()
+      .asMap();
 
-  print(arrivalTime);
-  print(departureIntervals);
-  var nextDepartureTimes = departureIntervals
-      .map((interval) => (arrivalTime / interval).ceil() * interval)
-      .toList();
-  var soonestDeparture = nextDepartureTimes.reduce(min);
-  var busId = departureIntervals[nextDepartureTimes.indexOf(soonestDeparture)];
-  print((soonestDeparture - arrivalTime) * busId);
+  var offsetToInterval = SplayTreeMap<int, int>.fromIterable(
+      notes.entries.where((entry) => entry.value != null),
+      key: (e) => e.key,
+      value: (e) => e.value);
+
+  var incr = offsetToInterval.remove(offsetToInterval.firstKey())!;
+  var value = 0;
+
+  for (var entry in offsetToInterval.entries) {
+    var offset = entry.key;
+    var interval = entry.value;
+    while ((value + offset) % interval != 0) {
+      value += incr;
+    }
+    incr = lcm(incr, interval);
+  }
+
+  print(value);
+}
+
+/// Returns greatest common divisor of [a] and [b].
+int gcd(int a, int b) {
+  return a.gcd(b);
+}
+
+/// Returns least common multiple of [a] and [b].
+int lcm(int a, int b) {
+  return (a * b).abs() ~/ gcd(a, b);
 }
