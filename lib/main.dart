@@ -14,7 +14,7 @@ void main() {
     before[number] = i;
   }
   int index;
-  while ((index = numbers.length - 1) + 1 < 2020) {
+  while ((index = numbers.length - 1) + 1 < 30000000) {
     var previousIndex = before[numbers.last];
     int nextNumber;
 
