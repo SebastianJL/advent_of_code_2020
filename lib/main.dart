@@ -1,31 +1,37 @@
 import 'dart:io';
 
 void main() {
-  var numbers = File('lib/numbers.txt')
-      .readAsStringSync()
-      .split(',')
-      .map((e) => int.parse(e))
-      .toList();
+  var notes = File('lib/notes.txt').readAsStringSync().split('\n\n');
 
-  var before = <int, int>{};
+  var categories = {
+    for (var e in notes[0].split('\n').map((e) => e.split(': '))) e[0]: Interval(e[1])
+  };
+  var myTicket = notes[1];
+  var nearbyTickets = notes[2];
 
-  for (var i = 0; i < numbers.length - 1; i++) {
-    var number = numbers[i];
-    before[number] = i;
+  print(categories);
+}
+
+class Interval {
+  final List<int> boundaries;
+
+  Interval(String r)
+      : boundaries =
+            r.split(RegExp(r' or |-')).map((e) => int.parse(e)).toList();
+
+  @override
+  String toString() {
+    return 'Interval($boundaries)';
   }
-  int index;
-  while ((index = numbers.length - 1) + 1 < 30000000) {
-    var previousIndex = before[numbers.last];
-    int nextNumber;
 
-    if (previousIndex == null) {
-      nextNumber = 0;
-    } else {
-      nextNumber = index - previousIndex;
+  bool contains(int n) {
+    var found = false;
+    for (var i=0; i<boundaries.length; i+=2) {
+      if (n >= boundaries[i] && n <= boundaries[i+1]) {
+        found = true;
+        break;
+      }
     }
-    before[numbers.last] = index;
-    numbers.add(nextNumber);
+    return found;
   }
-
-  print(numbers.last);
 }
